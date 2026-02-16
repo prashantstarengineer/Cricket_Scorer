@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cricket Match Scoreboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 12px; }
+    h1 { text-align: center; margin-bottom: 10px; }
+    .card { background: #fff; padding: 12px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 12px; }
+    .score { font-size: 22px; text-align: center; margin: 6px 0; }
+    .small { font-size: 14px; color: #555; text-align: center; }
+    .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    button { padding: 14px; font-size: 16px; border: none; border-radius: 8px; background: #1976d2; color: white; }
+    button:active { background: #0d47a1; }
+    .reset { background: #d32f2f; }
+    .secondary { background: #455a64; }
+    input { width: 100%; padding: 8px; margin-top: 6px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<h1>🏏 Full Match Cricket Counter</h1>
+
+<div class="card">
+  <label>Team A Name</label>
+  <input id="teamAName" value="Team A" />
+  <label>Team B Name</label>
+  <input id="teamBName" value="Team B" />
+  <label>Overs per innings</label>
+  <input id="maxOvers" type="number" value="6" />
+</div>
+
+<div class="card">
+  <div class="score"><strong id="currentTeam">Team A</strong> Batting</div>
+  <div class="score">Runs: <strong id="runs">0</strong> / Wkts: <strong id="wickets">0</strong></div>
+  <div class="score">Overs: <strong id="overs">0.0</strong></div>
+  <div class="small">Target: <span id="target">-</span></div>
+</div>
+
+<div class="card">
+  <div class="buttons">
+    <button onclick="addRun(0)">0</button>
+    <button onclick="addRun(1)">1</button>
+    <button onclick="addRun(2)">2</button>
+    <button onclick="addRun(3)">3</button>
+    <button onclick="addRun(4)">4</button>
+    <button onclick="addRun(6)">6</button>
+    <button onclick="addExtra('WD')">Wide</button>
+    <button onclick="addExtra('NB')">No Ball</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="buttons">
+    <button onclick="dotBall()">Dot Ball</button>
+    <button onclick="wicket()">Wicket</button>
+    <button class="secondary" onclick="undo()">Undo</button>
+    <button class="reset" onclick="resetMatch()">Reset Match</button>
+  </div>
+</div>
+
+<script>
+  let innings = 1;
+  let runs = 0, balls = 0, wickets = 0;
+  let history = [];
+  let target = null;
+
+  function maxBalls() {
+    return Number(document.getElementById('maxOvers').value) * 6;
+  }
+
+  function currentTeamName() {
+    return innings === 1 ? teamAName.value : teamBName.value;
+  }
+
+  function update() {
+    document.getElementById('runs').innerText = runs;
+    document.getElementById('wickets').innerText = wickets;
+    document.getElementById('overs').innerText = Math.floor(balls/6) + '.' + (balls%6);
+    document.getElementById('currentTeam').innerText = currentTeamName();
+    document.getElementById('target').innerText = target ? target : '-';
+
+    if (innings === 2 && target && runs >= target) {
+      alert(currentTeamName() + ' WON the match!');
+    }
+    if (balls >= maxBalls()) endInnings();
+  }
+
+  function saveState() {
+    history.push({runs, balls, wickets});
+  }
+
+  function addRun(r) {
+    saveState();
+    runs += r; balls++; update();
+  }
+
+  function dotBall() {
+    saveState(); balls++; update();
+  }
+
+  function wicket() {
+    saveState(); wickets++; balls++; update();
+  }
+
+  function addExtra(type) {
+    saveState(); runs++; update();
+  }
+
+  function undo() {
+    if (!history.length) return;
+    let last = history.pop();
+    runs = last.runs; balls = last.balls; wickets = last.wickets; update();
+  }
+
+  function endInnings() {
+    if (innings === 1) {
+      target = runs + 1;
+      innings = 2;
+      runs = balls = wickets = 0;
+      history = [];
+      alert('Innings break! Target is ' + target);
+      update();
+    }
+  }
+
+  function resetMatch() {
+    if (!confirm('Reset full match?')) return;
+    innings = 1; runs = balls = wickets = 0; history = []; target = null;
+    update();
+  }
+
+  update();
+</script>
+
+</body>
+</html>
